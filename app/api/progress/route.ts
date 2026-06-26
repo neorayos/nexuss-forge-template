@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
 
-const TABLE = process.env.NEXT_PUBLIC_TABLE_PREFIX ?? "forge_default";
+export const dynamic = "force-dynamic";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function db() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
-async function getUserId(clerkId: string): Promise<string | null> {
+const TABLE = () => process.env.NEXT_PUBLIC_TABLE_PREFIX ?? "forge_default";
+
+async function getUserId(supabase: ReturnType<typeof createClient>, clerkId: string, table: string): Promise<string | null> {
   const { data } = await supabase
-    .from(`${TABLE}_users`)
+    .from(`${table}_users`)
     .select("id")
     .eq("clerk_id", clerkId)
     .single();
@@ -22,11 +26,13 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const uid = await getUserId(userId);
+  const supabase = db();
+  const table = TABLE();
+  const uid = await getUserId(supabase, userId, table);
   if (!uid) return NextResponse.json({ progress: [] });
 
   const { data } = await supabase
-    .from(`${TABLE}_progress`)
+    .from(`${table}_progress`)
     .select("stage, score, completed_at")
     .eq("user_id", uid)
     .order("completed_at", { ascending: true });
@@ -41,11 +47,13 @@ export async function POST(req: NextRequest) {
   const { stage, score } = await req.json();
   if (!stage) return NextResponse.json({ error: "stage required" }, { status: 400 });
 
-  let uid = await getUserId(userId);
+  const supabase = db();
+  const table = TABLE();
+  let uid = await getUserId(supabase, userId, table);
 
   if (!uid) {
     const { data: newUser } = await supabase
-      .from(`${TABLE}_users`)
+      .from(`${table}_users`)
       .insert({ clerk_id: userId, tier: "free" })
       .select("id")
       .single();
@@ -55,7 +63,7 @@ export async function POST(req: NextRequest) {
   if (!uid) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const { data } = await supabase
-    .from(`${TABLE}_progress`)
+    .from(`${table}_progress`)
     .upsert(
       { user_id: uid, stage, score: score ?? 100, completed_at: new Date().toISOString() },
       { onConflict: "user_id,stage" }
