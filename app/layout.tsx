@@ -3,6 +3,11 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
+// Prevent static pre-rendering — ClerkProvider validates the publishable key
+// during SSR and will throw if env vars aren't baked in at build time.
+// force-dynamic ensures all pages render at request time when env vars are live.
+export const dynamic = "force-dynamic";
+
 const inter = Inter({ subsets: ["latin"] });
 
 const fw = process.env.NEXT_PUBLIC_FRAMEWORK_NAME ?? "My Framework";
