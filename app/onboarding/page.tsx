@@ -1,68 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-const FW = typeof window !== "undefined"
-  ? process.env.NEXT_PUBLIC_FRAMEWORK_NAME ?? "My Framework"
-  : process.env.NEXT_PUBLIC_FRAMEWORK_NAME ?? "My Framework";
-
-const CLIENT_AFTER = process.env.NEXT_PUBLIC_CLIENT_AFTER ?? "where you want to be";
-
-const STEPS = [
-  {
-    id: "welcome",
-    title: `Welcome to ${FW}`,
-    description: `You've taken the first step toward becoming ${CLIENT_AFTER}. Let's get you set up in under 3 minutes.`,
-    fields: [] as Field[],
-  },
-  {
-    id: "profile",
-    title: "Tell us about yourself",
-    description: "This helps us personalise your experience inside the framework.",
-    fields: [
-      { key: "full_name", label: "Full Name", type: "text" as const, placeholder: "Your name" },
-      { key: "business", label: "Business / Project", type: "text" as const, placeholder: "What are you building?" },
-      {
-        key: "goal",
-        label: "Primary Goal",
-        type: "select" as const,
-        options: [
-          "Escape the 9–5",
-          "Build recurring revenue",
-          "Launch my framework",
-          "Scale an existing business",
-          "Other",
-        ],
-      },
-    ],
-  },
-  {
-    id: "baseline",
-    title: "Where are you right now?",
-    description: "Honest baseline sets you up for the biggest transformation.",
-    fields: [
-      {
-        key: "current_revenue",
-        label: "Current Monthly Revenue",
-        type: "select" as const,
-        options: ["$0 — pre-revenue", "$1–$2,000", "$2,000–$10,000", "$10,000–$50,000", "$50,000+"],
-      },
-      {
-        key: "biggest_block",
-        label: "Biggest Block Right Now",
-        type: "textarea" as const,
-        placeholder: "What's the one thing stopping you?",
-      },
-    ],
-  },
-  {
-    id: "done",
-    title: "You're in.",
-    description: "Your account is set up. Head to your dashboard to begin Stage 1.",
-    fields: [] as Field[],
-  },
-];
 
 interface Field {
   key: string;
@@ -74,12 +13,62 @@ interface Field {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [fw, setFw]       = useState("My Framework");
+  const [after, setAfter] = useState("where you want to be");
+  const [step, setStep]   = useState(0);
+  const [form, setForm]   = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    fetch("/api/config")
+      .then(r => r.json())
+      .then((d: { frameworkName?: string; clientAfter?: string }) => {
+        if (d.frameworkName) setFw(d.frameworkName);
+        if (d.clientAfter)   setAfter(d.clientAfter);
+      })
+      .catch(() => {});
+  }, []);
+
+  const STEPS = [
+    {
+      id: "welcome",
+      title: `Welcome to ${fw}`,
+      description: `You've taken the first step toward becoming ${after}. Let's get you set up in under 3 minutes.`,
+      fields: [] as Field[],
+    },
+    {
+      id: "profile",
+      title: "Tell us about yourself",
+      description: "This helps us personalise your experience inside the framework.",
+      fields: [
+        { key: "full_name", label: "Full Name",         type: "text"   as const, placeholder: "Your name" },
+        { key: "business",  label: "Business / Project", type: "text"   as const, placeholder: "What are you building?" },
+        { key: "goal",      label: "Primary Goal",       type: "select" as const, options: [
+          "Escape the 9–5", "Build recurring revenue", "Launch my framework", "Scale an existing business", "Other",
+        ]},
+      ],
+    },
+    {
+      id: "baseline",
+      title: "Where are you right now?",
+      description: "Honest baseline sets you up for the biggest transformation.",
+      fields: [
+        { key: "current_revenue", label: "Current Monthly Revenue", type: "select" as const,
+          options: ["$0 — pre-revenue", "$1–$2,000", "$2,000–$10,000", "$10,000–$50,000", "$50,000+"] },
+        { key: "biggest_block", label: "Biggest Block Right Now", type: "textarea" as const,
+          placeholder: "What's the one thing stopping you?" },
+      ],
+    },
+    {
+      id: "done",
+      title: "You're in.",
+      description: "Your account is set up. Head to your dashboard to begin Stage 1.",
+      fields: [] as Field[],
+    },
+  ];
+
   function update(key: string, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm(prev => ({ ...prev, [key]: value }));
   }
 
   async function advance() {
@@ -92,16 +81,15 @@ export default function OnboardingPage() {
       }).catch(() => {});
       setSaving(false);
     }
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    setStep(s => Math.min(s + 1, STEPS.length - 1));
   }
 
-  const current = STEPS[step];
+  const current  = STEPS[step];
   const progress = Math.round((step / (STEPS.length - 1)) * 100);
-  const isLast = step === STEPS.length - 1;
+  const isLast   = step === STEPS.length - 1;
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-[#F0F0F0] flex flex-col items-center justify-center px-6 py-16">
-      {/* Progress */}
       <div className="w-full max-w-md mb-8">
         <div className="flex justify-between text-[10px] text-[#6B7280] mb-2">
           <span>Step {step + 1} of {STEPS.length}</span>
@@ -115,7 +103,6 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Card */}
       <div className="w-full max-w-md bg-[#12121A] border border-[#1E1E2E] rounded-2xl p-8">
         {isLast ? (
           <div className="text-center">
@@ -133,15 +120,13 @@ export default function OnboardingPage() {
           </div>
         ) : (
           <>
-            <p className="text-[10px] font-mono tracking-[0.2em] text-[#C9A84C]/60 uppercase mb-2">
-              ONBOARDING
-            </p>
+            <p className="text-[10px] font-mono tracking-[0.2em] text-[#C9A84C]/60 uppercase mb-2">ONBOARDING</p>
             <h2 className="text-xl font-black mb-2">{current.title}</h2>
             <p className="text-sm text-[#6B7280] leading-relaxed mb-7">{current.description}</p>
 
             {current.fields.length > 0 && (
               <div className="space-y-5 mb-7">
-                {current.fields.map((field) => (
+                {current.fields.map(field => (
                   <div key={field.key}>
                     <label className="block text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2">
                       {field.label}
@@ -150,25 +135,20 @@ export default function OnboardingPage() {
                       <input
                         type="text"
                         value={form[field.key] ?? ""}
-                        onChange={(e) => update(field.key, e.target.value)}
+                        onChange={e => update(field.key, e.target.value)}
                         placeholder={field.placeholder}
                       />
                     )}
                     {field.type === "select" && (
-                      <select
-                        value={form[field.key] ?? ""}
-                        onChange={(e) => update(field.key, e.target.value)}
-                      >
+                      <select value={form[field.key] ?? ""} onChange={e => update(field.key, e.target.value)}>
                         <option value="">Select an option…</option>
-                        {field.options?.map((o) => (
-                          <option key={o} value={o}>{o}</option>
-                        ))}
+                        {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
                       </select>
                     )}
                     {field.type === "textarea" && (
                       <textarea
                         value={form[field.key] ?? ""}
-                        onChange={(e) => update(field.key, e.target.value)}
+                        onChange={e => update(field.key, e.target.value)}
                         placeholder={field.placeholder}
                         rows={3}
                         style={{ resize: "none" }}
@@ -190,17 +170,12 @@ export default function OnboardingPage() {
         )}
       </div>
 
-      {/* Dots */}
       <div className="flex gap-2 mt-6">
         {STEPS.map((_, i) => (
           <div
             key={i}
             className={`rounded-full transition-all duration-300 ${
-              i === step
-                ? "w-6 h-2 bg-[#7C3AED]"
-                : i < step
-                ? "w-2 h-2 bg-[#00E5A0]"
-                : "w-2 h-2 bg-[#1E1E2E]"
+              i === step ? "w-6 h-2 bg-[#7C3AED]" : i < step ? "w-2 h-2 bg-[#00E5A0]" : "w-2 h-2 bg-[#1E1E2E]"
             }`}
           />
         ))}

@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const fw = process.env.NEXT_PUBLIC_FRAMEWORK_NAME ?? "My Framework";
-const before = process.env.NEXT_PUBLIC_CLIENT_BEFORE ?? "where you are";
-const after = process.env.NEXT_PUBLIC_CLIENT_AFTER ?? "where you want to be";
+const fw = process.env.FRAMEWORK_NAME   ?? "My Framework";
+const before = process.env.FRAMEWORK_BEFORE ?? "where you are";
+const after  = process.env.FRAMEWORK_AFTER  ?? "where you want to be";
 
 export const metadata: Metadata = {
   title: fw,

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 
 function parseStages(raw: string | undefined): Array<{ name: string; description?: string }> {
@@ -5,17 +7,17 @@ function parseStages(raw: string | undefined): Array<{ name: string; description
 }
 
 export default function LandingPage() {
-  const fw = process.env.NEXT_PUBLIC_FRAMEWORK_NAME ?? "My Framework";
-  const before = process.env.NEXT_PUBLIC_CLIENT_BEFORE ?? "where you are now";
-  const after = process.env.NEXT_PUBLIC_CLIENT_AFTER ?? "where you want to be";
-  const stages = parseStages(process.env.NEXT_PUBLIC_STAGES);
+  const fw     = process.env.FRAMEWORK_NAME     ?? "My Framework";
+  const before = process.env.FRAMEWORK_BEFORE   ?? "where you are now";
+  const after  = process.env.FRAMEWORK_AFTER    ?? "where you want to be";
+  const stages = parseStages(process.env.FRAMEWORK_STAGES);
 
   const displayStages = stages.length > 0
     ? stages.slice(0, 6)
     : [
         { name: "Discover", description: "Uncover your core framework" },
-        { name: "Build", description: "Structure your methodology" },
-        { name: "Launch", description: "Go live and attract clients" },
+        { name: "Build",    description: "Structure your methodology" },
+        { name: "Launch",   description: "Go live and attract clients" },
       ];
 
   return (

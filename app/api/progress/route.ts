@@ -6,12 +6,12 @@ export const dynamic = "force-dynamic";
 
 function db() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
   );
 }
 
-const TABLE = () => process.env.NEXT_PUBLIC_TABLE_PREFIX ?? "forge_default";
+const TABLE = () => process.env.FRAMEWORK_TABLE_PREFIX ?? "forge_default";
 
 async function getUserId(supabase: ReturnType<typeof createClient>, clerkId: string, table: string): Promise<string | null> {
   const { data } = await supabase

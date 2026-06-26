@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 
 interface Tier {
@@ -10,18 +12,18 @@ interface Tier {
 
 function parseTiers(): Tier[] {
   try {
-    const raw = process.env.NEXT_PUBLIC_VALUE_LADDER ?? "[]";
+    const raw = process.env.FRAMEWORK_VALUE_LADDER ?? "[]";
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) return parsed;
   } catch {}
   return [
-    { name: "Starter", price: 0, features: ["Core framework access", "Community access"] },
-    { name: "Builder", price: 97, period: "mo", features: ["Full methodology", "Live coaching calls", "Private community"] },
+    { name: "Starter",   price: 0,   features: ["Core framework access", "Community access"] },
+    { name: "Builder",   price: 97,  period: "mo", features: ["Full methodology", "Live coaching calls", "Private community"] },
     { name: "Sovereign", price: 297, period: "mo", features: ["Everything in Builder", "1:1 sessions", "Done-with-you builds"] },
   ];
 }
 
-const FW = process.env.NEXT_PUBLIC_FRAMEWORK_NAME ?? "My Framework";
+const FW    = process.env.FRAMEWORK_NAME ?? "My Framework";
 const TIERS = parseTiers();
 
 export default function PricingPage() {
@@ -30,7 +32,6 @@ export default function PricingPage() {
   return (
     <main className="min-h-screen bg-[#0A0A0F] text-[#F0F0F0] px-6 py-20">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-14">
           <p className="text-[9px] font-mono tracking-[0.25em] text-[#C9A84C]/60 uppercase mb-4">
             Invest in Your Sovereignty
@@ -41,7 +42,6 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Tiers */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {TIERS.map((tier, i) => {
             const isHighlighted = i === midIdx;
@@ -90,7 +90,7 @@ export default function PricingPage() {
                 )}
 
                 <Link
-                  href={isFree ? "/sign-up" : "/sign-up"}
+                  href="/sign-up"
                   className={`block w-full py-3 rounded-xl text-center font-bold transition-all text-sm mt-auto ${
                     isHighlighted
                       ? "bg-[#7C3AED] text-white hover:brightness-110"
